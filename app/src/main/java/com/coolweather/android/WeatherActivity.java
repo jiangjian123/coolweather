@@ -1,6 +1,7 @@
 package com.coolweather.android;
 
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.coolweather.android.gson.Forecast;
 import com.coolweather.android.gson.Weather;
+import com.coolweather.android.service.AutoUpdateService;
 import com.coolweather.android.util.HttpUtil;
 import com.coolweather.android.util.Utility;
 
@@ -124,6 +126,14 @@ public class WeatherActivity extends AppCompatActivity {
         swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+                String weatherString = prefs.getString("weather", null);
+                if(weatherString != null){
+                    Weather weather = Utility.handleWeatherResponse(weatherString);
+                    mWeatherId = weather.basic.weatherId;
+                }else {
+                    mWeatherId = getIntent().getStringExtra("weather_id");
+                }
                 Log.d("dddd", mWeatherId);
                 requestWeather(mWeatherId);
             }
@@ -216,6 +226,8 @@ public class WeatherActivity extends AppCompatActivity {
         carWashText.setText(carWash);
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startService(intent);
     }
 
     private void loadBingPic(){
